@@ -24,8 +24,8 @@ const closest_attacks = async function(req, res) {
                         POWER(A.longitude - T.longitude, 2)
                       ) AS distance
                     FROM TerroristAttack T
-                    CROSS JOIN AirbnbListing A
-                    WHERE A.aid = id
+                    CROSS JOIN airbnb A
+                    WHERE A.aid = ${id}
                   )
                   SELECT *
                   FROM t_distance
@@ -45,20 +45,20 @@ const closest_attacks = async function(req, res) {
 const success_rate_and_type = async function(req, res) {
   const city = req.params.city;
   const query = `WITH attack_stats AS (
-                  SELECT 
-                    attack_type,
-                    AVG(CAST(success AS FLOAT)) AS success_rate,
-                    COUNT(*) AS attack_count
+                  SELECT
+                      attack_type,
+                      ROUND(AVG(CASE WHEN success THEN 1.0 ELSE 0.0 END), 2) AS success_rate,
+                      COUNT(*) AS attack_count
                   FROM TerroristAttack T
-                  WHERE T.city = city
+                  WHERE LOWER(T.city) = LOWER('${city}')
                   GROUP BY attack_type
-                )
-                SELECT 
-                    attack_type,
-                    success_rate,
-                    attack_count
-                FROM attack_stats
-                ORDER BY attack_count DESC`;
+              )
+              SELECT
+                  attack_type,
+                  success_rate,
+                  attack_count
+              FROM attack_stats
+              ORDER BY attack_count DESC`;
   connection.query(query , (err, data) => {
     if (err) {
       console.log(err);
@@ -71,30 +71,37 @@ const success_rate_and_type = async function(req, res) {
 
 const highest_success_rate = async function(req, res) {
   const query = `WITH CountrySuccessRate AS (
-                  SELECT country, 
-                          COUNT(*) AS total_attacks,
-                          SUM(CASE WHEN success = 1 THEN 1 ELSE 0 END) AS successful_attacks,
-                          Total_attacks / successful_attacks AS success_rate
-                  FROM Terrorist_Attack
+                  SELECT
+                      country,
+                      COUNT(*) AS total_attacks,
+                      SUM(CASE WHEN success = TRUE THEN 1 ELSE 0 END) AS successful_attacks,
+                      CAST(SUM(CASE WHEN success = TRUE THEN 1 ELSE 0 END) AS FLOAT) / NULLIF(COUNT(*), 0) AS success_rate
+                  FROM terroristattack
                   GROUP BY country
-                ),
-                TopCountries AS (
+              ),
+              TopCountries AS (
                   SELECT country
                   FROM CountrySuccessRate
                   ORDER BY success_rate DESC
                   LIMIT 5
-                ),
-                CountryWeaponStats AS (
-                  SELECT ta.country, ta.weapon_type,
-                          COUNT(*) AS weapon_usage_count,
-                          AVG(ncasualties) AS avg_casualties
-                  FROM Terrorist_Attack ta
+              ),
+              CountryWeaponStats AS (
+                  SELECT
+                      ta.country,
+                      ta.weapon_type,
+                      COUNT(*) AS weapon_usage_count,
+                      AVG(COALESCE(ta.nkill, 0) + COALESCE(ta.nwound, 0)) AS avg_casualties
+                  FROM terroristattack ta
                   JOIN TopCountries tc ON ta.country = tc.country
                   GROUP BY ta.country, ta.weapon_type
-                )
-                SELECT cws.country, cws.weapon_type, cws.weapon_usage_count, cws.avg_casualties
-                FROM CountryWeaponStats cws
-                ORDER BY cws.country, cws.weapon_usage_count DESC, cws.avg_casualties DESC`;
+              )
+              SELECT
+                  cws.country,
+                  cws.weapon_type,
+                  cws.weapon_usage_count,
+                  ROUND(cws.avg_casualties, 2)
+              FROM CountryWeaponStats cws
+              ORDER BY cws.country, cws.weapon_usage_count DESC, cws.avg_casualties DESC`;
   connection.query(query , (err, data) => {
     if (err) {
       console.log(err);
