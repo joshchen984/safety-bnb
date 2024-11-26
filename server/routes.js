@@ -15,6 +15,7 @@ const connection = new Pool({
 });
 connection.connect((err) => err && console.log(err));
 
+// Route 1
 const closest_attacks = async function(req, res) {
   const id = req.params.id;
   const query = `WITH t_distance AS (
@@ -42,6 +43,115 @@ const closest_attacks = async function(req, res) {
   });
 }
 
+//Route 2
+const bookmarked_listings = async function(req, res) {
+  const user_id = req.params.user_id;
+  const query = `SELECT A.*
+                FROM bookmark B JOIN airbnb A ON b.aid = a.aid
+                WHERE b.uid = ${user_id}`;
+  connection.query(query, (err, data) => {
+    if (err) {
+      console.log(err);
+      res.json({});
+    } else {
+      res.json(data.rows);
+    }
+  });
+}
+
+//Route 3
+const frequent_attacks = async function(req, res) {
+  const query = `WITH HighCasualtyCountries AS (
+                  SELECT country, SUM(COALESCE(ta.nkill, 0) + COALESCE(ta.nwound, 0)) AS total_casualties
+                  FROM terroristattack ta
+                  GROUP BY country
+                  HAVING SUM(COALESCE(ta.nkill, 0) + COALESCE(ta.nwound, 0)) > 1000
+                ),
+                ATTACK_TYPE AS (
+                SELECT ta.country, ta.attack_type, COUNT(*) AS attack_count 
+                FROM terroristattack ta JOIN HighCasualtyCountries hc ON ta.country = hc.country
+                GROUP BY ta.country, ta.attack_type
+                )
+                SELECT at.country, at.attack_type 
+                FROM ATTACK_TYPE at 
+                WHERE at.attack_count >= (
+                SELECT MAX(at2.attack_count)
+                FROM ATTACK_TYPE at2 
+                WHERE at2.country=at.country)
+                `;
+  connection.query(query, (err, data) => {
+    if (err) {
+      console.log(err);
+      res.json({});
+    } else {
+      res.json(data.rows);
+    }
+  });
+}
+
+//Route 4
+const attack_count = async function(req, res) {
+  const city = req.params.city;
+  const year = req.query.year;
+  const query = `SELECT COUNT(tid)
+                  FROM terroristattack
+                  WHERE year >= ${year} AND city=\'${city}\'`;
+                  
+  connection.query(query, (err, data) => {
+    if (err) {
+      console.log(err);
+      res.json({});
+    } else {
+      res.json(data.rows);
+    }
+  });
+}
+
+//Route 5 ITs fucking broken
+const low_risk_neighborhoods = async function(req, res) {
+  const max_attacks = req.params.max_attacks;
+  const query = `WITH AttackCount AS (
+                  SELECT city, neighborhood, COUNT(*) AS attack_count
+                  FROM terroristattack
+                  GROUP BY city, neighborhood
+              )
+              SELECT city, neighborhood
+              FROM AttackCount
+              WHERE attack_count <= ${max_attacks}`;
+  connection.query(query, (err, data) => {
+    if (err) {
+      console.log(err);
+      res.json({});
+    } else {
+      res.json(data.rows);
+    }
+  });
+} 
+
+//Route 6
+const affordable_listings = async function(req, res) {
+  const price = req.params.price;
+  const casualties = req.params.casualties;
+  const query = `WITH CountryCasualties AS (
+                  SELECT country, AVG(COALESCE(ta.nkill, 0) + COALESCE(ta.nwound, 0)) AS avg_casualties
+                  FROM TerroristAttack
+                  GROUP BY country
+                )
+                SELECT a.*
+                FROM AirbnbListing a JOIN CountryCasualties cc ON a.country=cc.country
+                WHERE price <= ${price} AND cc.avg_casualties <= ${casualties}
+                `;
+  connection.query(query , (err, data) => {
+    if (err) {
+      console.log(err);
+      res.json({});
+    } else {
+      res.json(data.rows);
+    }
+  });
+}
+
+//Route 7
 const success_rate_and_type = async function(req, res) {
   const city = req.params.city;
   const query = `WITH attack_stats AS (
@@ -69,6 +179,24 @@ const success_rate_and_type = async function(req, res) {
   });
 }
 
+//Route 8
+const city_reviews = async function(req, res) {
+  const city = req.params.city;
+  const query = `SELECT ab.review_score_rating
+                FROM Airbnb ab 
+                WHERE ab.city = \'${city}\'
+                ORDER BY review_score_rating DESC`;
+  connection.query(query , (err, data) => {
+    if (err) {
+      console.log(err);
+      res.json({});
+    } else {
+      res.json(data.rows);
+    }
+  });
+}
+
+//Route 9
 const highest_success_rate = async function(req, res) {
   const query = `WITH CountrySuccessRate AS (
                   SELECT
@@ -114,6 +242,11 @@ const highest_success_rate = async function(req, res) {
 
 module.exports = {
   closest_attacks,
+  bookmarked_listings,
+  frequent_attacks,
+  attack_count,
+  low_risk_neighborhoods,
   success_rate_and_type,
+  city_reviews,
   highest_success_rate
 }
