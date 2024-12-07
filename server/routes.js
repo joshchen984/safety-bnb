@@ -240,6 +240,26 @@ const highest_success_rate = async function(req, res) {
   });
 } 
 
+// Route 10
+const suggested_visit = async function(req, res) {
+  const user_id = req.params.user_id;
+  const query = `SELECT t.city
+                  FROM bookmark b JOIN airbnb a ON b.aid = a.aid JOIN terroristattack t ON (a.city = t.city AND a.country = t.country)
+                  WHERE b.uid = ${user_id}
+                    AND SQRT(POWER(a.latitude - t.latitude, 2) + POWER(a.longitude - t.longitude, 2)) < 2
+                  GROUP BY t.city, t.country
+                  ORDER BY COUNT(t.tid)
+                  LIMIT 1`;
+  connection.query(query , (err, data) => {
+    if (err) {
+      console.log(err);
+      res.json({});
+    } else {
+      res.json(data.rows);
+    }
+  });
+}
+
 const all_airbnbs = async function(req, res) {
   const query = `SELECT * FROM airbnb`;
   connection.query(query , (err,
@@ -278,5 +298,6 @@ module.exports = {
   success_rate_and_type,
   city_reviews,
   highest_success_rate,
-  affordable_listings
+  affordable_listings,
+  suggested_visit
 }
