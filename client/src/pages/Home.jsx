@@ -1,20 +1,28 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useCookies } from 'react-cookie';
-import { Grid, Typography, Button, TextField } from '@mui/material';
+import {  Grid, Typography, Button, TextField , CircularProgress } from '@mui/material';
 import BookmarkCard from '../components/BookmarkCard';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { Link } from 'react-router-dom';
 
 const Home = () => {
   const [cookies, setCookie, removeCookie] = useCookies(['email']);
   const [listings, setListings] = useState([]);
   const listingSubset = useMemo(() => listings.slice(0, 20), [listings]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchListings = async () => {
-      const res = await fetch("http://127.0.0.1:8080/search")
-      const resJson = await res.json()
-      setListings(resJson);
-    }
+      try {
+        const res = await fetch("http://127.0.0.1:8080/search");
+        const resJson = await res.json();
+        setListings(resJson);
+      } catch (error) {
+        console.error('Error fetching listings:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchListings();
   }, []);
 
@@ -84,5 +92,5 @@ const Home = () => {
     </div>
   );
 };
-export default Home;
 
+export default Home;

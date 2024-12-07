@@ -21,7 +21,8 @@ app.get('/highest_sucess_rate', routes.highest_success_rate);
 app.get('/airbnbs', routes.all_airbnbs);
 app.get('/airbnb/:id', routes.airbnb);
 app.get('/search', routes.search);
-app.get('/bookmarks/:user_id', routes.bookmarks);
+app.get('/create_user/:email', routes.create_user);
+app.get('/create_bookmark/:uid:aid', routes.create_bookmark);
 
 
 app.listen(config.server_port, () => {

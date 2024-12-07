@@ -46,9 +46,14 @@ const closest_attacks = async function(req, res) {
 //Route 2
 const bookmarked_listings = async function(req, res) {
   const user_id = req.params.user_id;
-  const query = `SELECT A.*
-                FROM bookmark B JOIN airbnb A ON b.aid = a.aid
-                WHERE b.uid = ${user_id}`;
+  const email = req.cookies.email;
+
+  if (email !== user_id) {
+    res.status(404).send('404 Not Found');
+    return;
+  }
+
+  const query = `SELECT * FROM bookmark NATURAL JOIN airbnb WHERE user_email = '${user_id}'`;
   connection.query(query, (err, data) => {
     if (err) {
       console.log(err);
@@ -290,8 +295,8 @@ const search = async function(req, res) {
       (SELECT COUNT(*) FROM terroristattack WHERE country = \'${country}\')`;
   }
 
-  query += ` LIMIT 1000`;
-  
+  query += ` LIMIT 100`;
+
   connection.query(query, (err, data) => {
     if (err) {
       console.log(err);
@@ -302,25 +307,36 @@ const search = async function(req, res) {
   });
 }
 
-const bookmarks = async function(req, res) {
-  const user_id = req.params.user_id;
-  const email = req.cookies.email;
 
-  if (email !== user_id) {
-    res.status(404).send('404 Not Found');
-    return;
-  }
-
-  const query = `SELECT * FROM bookmark WHERE uid = '${user_id}'`;
+const create_user = async function(req, res) {
+  const email = req.params.email;
+  const firstname = req.params.firstname;
+  const lastname = req.params.lastname;
+  const query = `INSERT INTO users (email, firstname, lastname) VALUES ('${email}', '${firstname}', '${lastname}')`;
   connection.query(query, (err, data) => {
     if (err) {
       console.log(err);
-      res.json({});
+      res.status(500).send('Error creating user');
     } else {
-      res.json(data.rows);
+      res.status(201).send('User created');
     }
   });
 }
+
+const create_bookmark = async function(req, res) {
+  const uid = req.params.uid;
+  const aid = req.params.aid;
+  const query = `INSERT INTO bookmark (user_email, aid) VALUES ('${uid}', ${aid})`;
+  connection.query(query, (err, data) => {
+    if (err) {
+      console.log(err);
+      res.status(500).send('Error creating bookmark');
+    } else {
+      res.status(201).send('Bookmark created');
+    }
+  });
+}
+
 
 module.exports = {
   closest_attacks,
@@ -335,5 +351,6 @@ module.exports = {
   all_airbnbs,
   airbnb,
   search,
-  bookmarks
+  create_bookmark,
+  create_user
 }
