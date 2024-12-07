@@ -302,7 +302,7 @@ const search = async function(req, res) {
       console.log(err);
       res.json({});
     } else {
-      res.json(data.rows);
+      res.json(data.rows.length ? data.rows : []);
     }
   });
 }
