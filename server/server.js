@@ -18,10 +18,11 @@ app.get('/affordable_listings/:price:casualties', routes.affordable_listings);
 app.get('/success_rate_and_type/:city', routes.success_rate_and_type);
 app.get('/city_reviews:city', routes.city_reviews);
 app.get('/highest_sucess_rate', routes.highest_success_rate);
-app.get('/suggested_visit/:user_id', routes.suggested_visit);
 app.get('/airbnbs', routes.all_airbnbs);
 app.get('/airbnb/:id', routes.airbnb);
 app.get('/search', routes.search);
+app.get('/bookmarks/:user_id', routes.bookmarks);
+
 
 app.listen(config.server_port, () => {
   console.log(`Server running at http://${config.server_host}:${config.server_port}/`)
