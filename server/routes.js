@@ -276,23 +276,50 @@ const search = async function(req, res) {
   const min_rating = req.query.min_rating ?? 0;
   const min_attacks_same_country = req.query.min_attacks_same_country ?? -1;
 
-  const query = `
-  SELECT * FROM airbnb
-  WHERE country = \'${country}\' AND price <= ${max_price} 
-  AND accommodates >= ${guests} AND bedrooms >= ${bedrooms}
-  AND CAST(review_scores_rating AS FLOAT) >= ${min_rating}
-  AND ${min_attacks_same_country} <= 
-  (SELECT COUNT(*) FROM terroristattack WHERE country = \'${country}\')
+  let query = `
+    SELECT * FROM airbnb
+    WHERE price <= ${max_price} 
+    AND accommodates >= ${guests} 
+    AND bedrooms >= ${bedrooms}
+    AND CAST(review_scores_rating AS FLOAT) >= ${min_rating}
   `;
-  connection.query(query , (err,
-    data) => {
+
+  if (country) {
+    query += ` AND country = \'${country}\'`;
+    query += ` AND ${min_attacks_same_country} <= 
+      (SELECT COUNT(*) FROM terroristattack WHERE country = \'${country}\')`;
+  }
+
+  query += ` LIMIT 1000`;
+  
+  connection.query(query, (err, data) => {
     if (err) {
       console.log(err);
       res.json({});
     } else {
       res.json(data.rows);
     }
-  })
+  });
+}
+
+const bookmarks = async function(req, res) {
+  const user_id = req.params.user_id;
+  const email = req.cookies.email;
+
+  if (email !== user_id) {
+    res.status(404).send('404 Not Found');
+    return;
+  }
+
+  const query = `SELECT * FROM bookmark WHERE uid = '${user_id}'`;
+  connection.query(query, (err, data) => {
+    if (err) {
+      console.log(err);
+      res.json({});
+    } else {
+      res.json(data.rows);
+    }
+  });
 }
 
 module.exports = {
@@ -305,8 +332,8 @@ module.exports = {
   city_reviews,
   highest_success_rate,
   affordable_listings,
-  suggested_visit,
   all_airbnbs,
   airbnb,
-  search
+  search,
+  bookmarks
 }
