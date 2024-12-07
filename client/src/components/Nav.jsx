@@ -10,12 +10,12 @@ const Nav = () => {
   return (
     <AppBar position="static">
       <Toolbar>
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+        <Typography variant="h6" component="div" sx={{ marginRight: 'auto' }}>
           Safety BnB
         </Typography>
         <Box>
-          <Button color="inherit" component={Link} to = "/login">Login</Button>
-          <Button color="inherit" component={Link} to = "/signup">Signup</Button>
+          <Button color="inherit" component={Link} to="/login">Login</Button>
+          <Button color="inherit" component={Link} to="/signup">Signup</Button>
         </Box>
       </Toolbar>
     </AppBar>
