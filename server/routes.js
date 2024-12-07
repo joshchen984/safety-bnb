@@ -268,6 +268,32 @@ const airbnb = async function(req, res) {
   })
 }
 
+const search = async function(req, res) {
+  const country = req.query.country ?? '';
+  const max_price = req.query.max_price ?? 100000;
+  const guests = req.query.guests ?? 1;
+  const bedrooms = req.query.bedrooms ?? 1;
+  const min_rating = req.query.min_rating ?? 0;
+  const min_attacks_same_country = req.query.min_attacks_same_country ?? -1;
+
+  const query = `
+  SELECT * FROM airbnb
+  WHERE country = \'${country}\' AND price <= ${max_price} 
+  AND accommodates >= ${guests} AND bedrooms >= ${bedrooms}
+  AND CAST(review_scores_rating AS FLOAT) >= ${min_rating}
+  AND ${min_attacks_same_country} <= 
+  (SELECT COUNT(*) FROM terroristattack WHERE country = \'${country}\')
+  `;
+  connection.query(query , (err,
+    data) => {
+    if (err) {
+      console.log(err);
+      res.json({});
+    } else {
+      res.json(data.rows);
+    }
+  })
+}
 
 module.exports = {
   closest_attacks,
@@ -278,5 +304,9 @@ module.exports = {
   success_rate_and_type,
   city_reviews,
   highest_success_rate,
-  affordable_listings
+  affordable_listings,
+  suggested_visit,
+  all_airbnbs,
+  airbnb,
+  search
 }
