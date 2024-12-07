@@ -10,7 +10,7 @@ const Nav = () => {
   return (
     <AppBar position="static">
       <Toolbar>
-        <Typography variant="h6" component="div" sx={{ marginRight: 'auto' }}>
+        <Typography variant="h6" component={Link} to="/" sx={{ textDecoration: 'none', color: 'inherit', marginRight: 'auto' }}>
           Safety BnB
         </Typography>
         <Box>
