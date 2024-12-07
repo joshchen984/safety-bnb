@@ -240,6 +240,35 @@ const highest_success_rate = async function(req, res) {
   });
 } 
 
+const all_airbnbs = async function(req, res) {
+  const query = `SELECT * FROM airbnb`;
+  connection.query(query , (err,
+    data) => {
+    if (err) {
+      console.log(err);
+      res.json({});
+    } else {
+      res.json(data.rows);
+    }
+  })
+}
+
+const airbnb = async function(req, res) {
+  const id = req.params.id;
+  const query = `SELECT * FROM airbnb WHERE aid = ${id
+  }`;
+  connection.query(query , (err,
+    data) => {
+    if (err) {
+      console.log(err);
+      res.json({});
+    } else {
+      res.json(data.rows);
+    }
+  })
+}
+
+
 module.exports = {
   closest_attacks,
   bookmarked_listings,
@@ -248,5 +277,6 @@ module.exports = {
   low_risk_neighborhoods,
   success_rate_and_type,
   city_reviews,
-  highest_success_rate
+  highest_success_rate,
+  affordable_listings
 }
