@@ -14,7 +14,7 @@ app.get('/bookmarked_listings/:user_id', routes.bookmarked_listings);
 app.get('/frequent_attacks', routes.frequent_attacks);
 app.get('/attack_count/:city', routes.attack_count);
 app.get('/low_risk_neighborhoods/:max_attacks', routes.low_risk_neighborhoods);
-app.get('/affordable_listings/:price:casualties', routes.affordable_listings);
+app.get('/affordable_listings/:price/:casualties', routes.affordable_listings);
 app.get('/success_rate_and_type/:city', routes.success_rate_and_type);
 app.get('/city_reviews:city', routes.city_reviews);
 app.get('/highest_sucess_rate', routes.highest_success_rate);

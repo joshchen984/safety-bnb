@@ -98,9 +98,9 @@ const frequent_attacks = async function(req, res) {
 const attack_count = async function(req, res) {
   const city = req.params.city;
   const year = req.query.year;
-  const query = `SELECT COUNT(tid)
+  const query = `SELECT COUNT(tid) AS attack_count
                   FROM terroristattack
-                  WHERE year >= ${year} AND city=\'${city}\'`;
+                  WHERE year >= ${year} AND LOWER(city)=LOWER('${city}')`;
                   
   connection.query(query, (err, data) => {
     if (err) {
@@ -138,12 +138,12 @@ const affordable_listings = async function(req, res) {
   const price = req.params.price;
   const casualties = req.params.casualties;
   const query = `WITH CountryCasualties AS (
-                  SELECT country, AVG(COALESCE(ta.nkill, 0) + COALESCE(ta.nwound, 0)) AS avg_casualties
+                  SELECT country, AVG(COALESCE(nkill, 0) + COALESCE(nwound, 0)) AS avg_casualties
                   FROM TerroristAttack
                   GROUP BY country
                 )
                 SELECT a.*
-                FROM AirbnbListing a JOIN CountryCasualties cc ON a.country=cc.country
+                FROM airbnb a JOIN CountryCasualties cc ON a.country=cc.country
                 WHERE price <= ${price} AND cc.avg_casualties <= ${casualties}
                 `;
   connection.query(query , (err, data) => {
