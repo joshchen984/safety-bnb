@@ -46,14 +46,14 @@ const closest_attacks = async function(req, res) {
 //Route 2
 const bookmarked_listings = async function(req, res) {
   const user_id = req.params.user_id;
-  const email = req.cookies.email;
+  //const email = req.cookies.email;
 
-  if (email !== user_id) {
-    res.status(404).send('404 Not Found');
-    return;
-  }
+  // if (email !== user_id) {
+  //   res.status(404).send('404 Not Found');
+  //   return;
+  // }
 
-  const query = `SELECT * FROM bookmark NATURAL JOIN airbnb WHERE user_email = '${user_id}'`;
+  const query = `SELECT * FROM bookmark NATURAL JOIN airbnb WHERE user_email = \'${user_id}\'`;
   connection.query(query, (err, data) => {
     if (err) {
       console.log(err);
@@ -310,15 +310,29 @@ const search = async function(req, res) {
 
 const create_user = async function(req, res) {
   const email = req.params.email;
-  const firstname = req.params.firstname;
-  const lastname = req.params.lastname;
-  const query = `INSERT INTO users (email, firstname, lastname) VALUES ('${email}', '${firstname}', '${lastname}')`;
-  connection.query(query, (err, data) => {
+  const firstname = req.params.firstname ?? '';
+  const lastname = req.params.lastname ?? '';
+
+  // Check if the user already exists
+  const checkQuery = `SELECT * FROM users WHERE email = \'${email}\'`;
+  connection.query(checkQuery, (err, data) => {
     if (err) {
       console.log(err);
-      res.status(500).send('Error creating user');
+      res.status(500).send('Error checking user');
+    } else if (data.rows.length > 0) {
+      // User already exists, return success message
+      res.status(200).send('User already exists');
     } else {
-      res.status(201).send('User created');
+      // Insert the new user
+      const insertQuery = `INSERT INTO users (email, firstname, lastname) VALUES (\'${email}\', \'${firstname}\', \'${lastname}\')`;
+      connection.query(insertQuery, (err, data) => {
+        if (err) {
+          console.log(err);
+          res.status(500).send('Error creating user');
+        } else {
+          res.status(201).send('User created');
+        }
+      });
     }
   });
 }
@@ -326,13 +340,26 @@ const create_user = async function(req, res) {
 const create_bookmark = async function(req, res) {
   const uid = req.params.uid;
   const aid = req.params.aid;
-  const query = `INSERT INTO bookmark (user_email, aid) VALUES ('${uid}', ${aid})`;
-  connection.query(query, (err, data) => {
+
+  // Check if the bookmark already exists
+  const checkQuery = `SELECT * FROM bookmark WHERE user_email = \'${uid}\' AND aid = ${aid}`;
+  connection.query(checkQuery, (err, data) => {
     if (err) {
       console.log(err);
-      res.status(500).send('Error creating bookmark');
+      res.status(500).send('Error checking bookmark');
+    } else if (data.rows.length > 0) {
+      res.status(409).send('Bookmark already exists');
     } else {
-      res.status(201).send('Bookmark created');
+      // Insert the new bookmark
+      const insertQuery = `INSERT INTO bookmark (user_email, aid) VALUES ('${uid}', ${aid})`;
+      connection.query(insertQuery, (err, data) => {
+        if (err) {
+          console.log(err);
+          res.status(500).send('Error creating bookmark');
+        } else {
+          res.status(201).send('Bookmark created');
+        }
+      });
     }
   });
 }

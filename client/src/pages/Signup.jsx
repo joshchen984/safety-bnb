@@ -1,18 +1,15 @@
-import { useState } from 'react';
-import { TextField, Button, Container, Typography, Box } from '@mui/material';
-import { getAuth, createUserWithEmailAndPassword} from "firebase/auth";
+import React, { useState } from 'react';
+import { useCookies } from 'react-cookie';
+import { Container, Box, Typography, TextField, Button } from '@mui/material';
+import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
-import GoogleButton from '../components/GoogleButton';
-import {useCookies} from 'react-cookie';
-import { Link } from 'react-router-dom';
-import GithubButton from '../components/GithubButton';
 
-
-
-export const Signup = () => {
+const Signup = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [cookies, setCookie, removeCookie] = useCookies(['email']);
+  const [firstname, setFirstname] = useState('');
+  const [lastname, setLastname] = useState('');
+  const [cookies, setCookie] = useCookies(['email']);
 
   const auth = getAuth();
   const navigate = useNavigate();
@@ -20,14 +17,28 @@ export const Signup = () => {
   const handleSubmit = (event) => {
     event.preventDefault();
     createUserWithEmailAndPassword(auth, email, password)
-    .then((userCredential) => {
-      // Signed up 
-      const user = userCredential.user;
-      setCookie("email", user.email);
-      navigate("/")
-    }).catch(e => {
-      console.log(e);
-    })
+      .then((userCredential) => {
+        // Signed up 
+        const user = userCredential.user;
+        setCookie("email", user.email);
+
+        // Call create_user route
+        fetch(`http://127.0.0.1:8080/create_user/${email}/${firstname}/${lastname}`, {
+          method: 'GET',
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Error creating user in database');
+          }
+          navigate("/");
+        })
+        .catch(e => {
+          console.log(e);
+        });
+      })
+      .catch(e => {
+        console.log(e);
+      });
   };
 
   return (
@@ -37,6 +48,22 @@ export const Signup = () => {
           Signup
         </Typography>
         <form onSubmit={handleSubmit}>
+          <TextField
+            label="First Name"
+            variant="outlined"
+            fullWidth
+            margin="normal"
+            value={firstname}
+            onChange={(e) => setFirstname(e.target.value)}
+          />
+          <TextField
+            label="Last Name"
+            variant="outlined"
+            fullWidth
+            margin="normal"
+            value={lastname}
+            onChange={(e) => setLastname(e.target.value)}
+          />
           <TextField
             label="Email"
             variant="outlined"
@@ -54,14 +81,13 @@ export const Signup = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 2 }}>
+          <Button type="submit" variant="contained" color="primary" fullWidth>
             Signup
           </Button>
         </form>
-        <GoogleButton>Signup with Google</GoogleButton>
-        <GithubButton>Signup with Github</GithubButton>
-        <Link to="/login">Login</Link>
       </Box>
     </Container>
   );
 };
+
+export default Signup;

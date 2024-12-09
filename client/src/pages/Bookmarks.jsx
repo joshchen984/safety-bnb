@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useCookies } from 'react-cookie';
 import { Grid } from '@mui/material';
 import BookmarkCard from '../components/BookmarkCard';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
-const Bookmarks = ({ userId }) => {
+const Bookmarks = () => {
+  const userId = useParams().userId;
   const [cookies] = useCookies(['email']);
   const [bookmarks, setBookmarks] = useState([]);
   const [error, setError] = useState(null);
@@ -16,18 +17,22 @@ const Bookmarks = ({ userId }) => {
       return;
     }
 
-    if (cookies.email !== userId) {
-      setError('404 Not Found');
-      return;
-    }
+    // const encodedEmail = encodeURIComponent(userId);
+
+    // if (encodedEmail !== cookies.email) {
+    //   setError('404 Not Found');
+    //   return;
+    // }
 
     const fetchBookmarks = async () => {
       try {
         const response = await fetch("http://127.0.0.1:8080/bookmarked_listings/" + userId);
         if (!response.ok) {
-          throw new Error('Error fetching bookmarks');
+          throw new Error("http://127.0.0.1:8080/bookmarked_listings/" + userId);
         }
         const data = await response.json();
+        console.log('Fetched bookmarks:', data);
+        console.log("http://127.0.0.1:8080/bookmarked_listings/" + userId);
         setBookmarks(data);
       } catch (err) {
         setError(err.message);

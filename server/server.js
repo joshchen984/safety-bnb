@@ -21,9 +21,8 @@ app.get('/highest_sucess_rate', routes.highest_success_rate);
 app.get('/airbnbs', routes.all_airbnbs);
 app.get('/airbnb/:id', routes.airbnb);
 app.get('/search', routes.search);
-app.get('/create_user/:email', routes.create_user);
-app.get('/create_bookmark/:uid:aid', routes.create_bookmark);
-
+app.get('/create_bookmark/:uid/:aid', routes.create_bookmark);
+app.get('/create_user/:email/:firstname/:lastname', routes.create_user);
 
 app.listen(config.server_port, () => {
   console.log(`Server running at http://${config.server_host}:${config.server_port}/`)

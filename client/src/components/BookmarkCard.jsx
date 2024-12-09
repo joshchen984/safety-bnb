@@ -5,8 +5,6 @@ import CardContent from '@mui/material/CardContent';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 
-
-
 const BookmarkCard = ({ listing, onAddToBookmarks }) => {
   return (
     <Card>
@@ -23,7 +21,7 @@ const BookmarkCard = ({ listing, onAddToBookmarks }) => {
         ))}
       </CardContent>
       <CardActions>
-        <Button size="small" onClick={onAddToBookmarks}>Add to Bookmarks</Button>
+        <Button size="small" onClick={() => onAddToBookmarks(listing.aid)}>Add to Bookmarks</Button>
       </CardActions>
     </Card>
   );
