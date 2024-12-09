@@ -30,12 +30,11 @@ const Home = () => {
   const handleAddToBookmarks = async (aid) => {
     try {
       const res = await fetch(`http://127.0.0.1:8080/create_bookmark/${cookies.email}/${aid}`, {
-        method: 'POST',
+        method: 'GET',
       });
       if (!res.ok) {
         throw new Error('Error adding bookmark');
       }
-      alert('Bookmark added successfully');
       navigate(`/bookmarks/${cookies.email}`);
     } catch (error) {
       console.error('Error adding bookmark:', error);

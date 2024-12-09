@@ -22,6 +22,7 @@ app.get('/airbnbs', routes.all_airbnbs);
 app.get('/airbnb/:id', routes.airbnb);
 app.get('/search', routes.search);
 app.get('/create_bookmark/:uid/:aid', routes.create_bookmark);
+app.get('/delete_bookmark/:uid/:aid', routes.delete_bookmark);
 app.get('/create_user/:email/:firstname/:lastname', routes.create_user);
 
 app.listen(config.server_port, () => {

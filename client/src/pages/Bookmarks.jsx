@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useCookies } from 'react-cookie';
-import { Grid } from '@mui/material';
+import { Grid, Typography, Button } from '@mui/material';
 import BookmarkCard from '../components/BookmarkCard';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 
 const Bookmarks = () => {
-  const userId = useParams().userId;
+  const { userId } = useParams();
   const [cookies] = useCookies(['email']);
   const [bookmarks, setBookmarks] = useState([]);
   const [error, setError] = useState(null);
@@ -17,22 +17,23 @@ const Bookmarks = () => {
       return;
     }
 
-    // const encodedEmail = encodeURIComponent(userId);
+    const encodedCookie = encodeURIComponent(cookies.email);
+    const encodedUserId = encodeURIComponent(userId);
 
-    // if (encodedEmail !== cookies.email) {
-    //   setError('404 Not Found');
-    //   return;
-    // }
+    if (encodedCookie !== encodedUserId) {
+      console.log(`${encodedCookie} !== ${encodedUserId}`);
+      setError('404 Not Found');
+      return;
+    }
 
     const fetchBookmarks = async () => {
       try {
-        const response = await fetch("http://127.0.0.1:8080/bookmarked_listings/" + userId);
+        const response = await fetch(`http://127.0.0.1:8080/bookmarked_listings/${userId}`);
         if (!response.ok) {
-          throw new Error("http://127.0.0.1:8080/bookmarked_listings/" + userId);
+          throw new Error(`Error fetching bookmarks for user ${userId}`);
         }
         const data = await response.json();
         console.log('Fetched bookmarks:', data);
-        console.log("http://127.0.0.1:8080/bookmarked_listings/" + userId);
         setBookmarks(data);
       } catch (err) {
         setError(err.message);
@@ -42,6 +43,20 @@ const Bookmarks = () => {
     fetchBookmarks();
   }, [cookies.email, userId, navigate]);
 
+  const handleDeleteFromBookmarks = async (aid) => {
+    try {
+      const res = await fetch(`http://127.0.0.1:8080/delete_bookmark/${cookies.email}/${aid}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) {
+        throw new Error('Error deleting bookmark');
+      }
+      setBookmarks(bookmarks.filter(bookmark => bookmark.aid !== aid));
+    } catch (error) {
+      console.error('Error deleting bookmark:', error);
+    }
+  };
+
   if (error) {
     return <div>{error}</div>;
   }
@@ -49,13 +64,22 @@ const Bookmarks = () => {
   return (
     <div style={{ padding: '20px' }}>
       <h1>Bookmarked Listings</h1>
-      <Grid container spacing={3}>
-        {bookmarks.map((item, index) => (
-          <Grid item xs={12} sm={6} md={4} key={index}>
-            <BookmarkCard listing={item} onAddToBookmarks={null} />
-          </Grid>
-        ))}
-      </Grid>
+      {bookmarks.length === 0 ? (
+        <div>
+          <Typography variant="h6">No Bookmarks Found.</Typography>
+          <Button component={Link} to="/" variant="contained" color="primary">
+            Go to Home Page
+          </Button>
+        </div>
+      ) : (
+        <Grid container spacing={3}>
+          {bookmarks.map((item, index) => (
+            <Grid item xs={12} sm={6} md={4} key={index}>
+              <BookmarkCard listing={item} onAddToBookmarks={null} onDeleteFromBookmarks={handleDeleteFromBookmarks} />
+            </Grid>
+          ))}
+        </Grid>
+      )}
     </div>
   );
 };

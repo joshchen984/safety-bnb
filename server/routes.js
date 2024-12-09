@@ -364,6 +364,32 @@ const create_bookmark = async function(req, res) {
   });
 }
 
+const delete_bookmark = async function(req, res) {
+  const uid = req.params.uid;
+  const aid = req.params.aid;
+
+  // Check if the bookmark exists
+  const checkQuery = `SELECT * FROM bookmark WHERE user_email = \'${uid}\' AND aid = ${aid}`;
+  connection.query(checkQuery, (err, data) => {
+    if (err) {
+      console.log(err);
+      res.status(500).send('Error checking bookmark');
+    } else if (data.rows.length === 0) {
+      res.status(404).send('Bookmark not found');
+    } else {
+      // Delete the bookmark
+      const deleteQuery = `DELETE FROM bookmark WHERE user_email = \'${uid}\' AND aid = ${aid}`;
+      connection.query(deleteQuery, (err, data) => {
+        if (err) {
+          console.log(err);
+          res.status(500).send('Error deleting bookmark');
+        } else {
+          res.status(204).send('Bookmark deleted');
+        }
+      });
+    }
+  });
+}
 
 module.exports = {
   closest_attacks,
@@ -379,5 +405,6 @@ module.exports = {
   airbnb,
   search,
   create_bookmark,
-  create_user
+  create_user,
+  delete_bookmark
 }
