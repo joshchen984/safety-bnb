@@ -13,6 +13,9 @@ const Nav = () => {
         <Typography variant="h6" component={Link} to="/" sx={{ textDecoration: 'none', color: 'inherit', marginRight: 'auto' }}>
           Safety BnB
         </Typography>
+        <Button color="inherit" component={Link} to="/stats">
+            Statistics
+          </Button>
         <Box>
           <Button color="inherit" component={Link} to="/login">Login</Button>
           <Button color="inherit" component={Link} to="/signup">Signup</Button>
