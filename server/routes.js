@@ -115,14 +115,26 @@ const attack_count = async function(req, res) {
 //Route 5 ITs fucking broken
 const low_risk_neighborhoods = async function(req, res) {
   const max_attacks = req.params.max_attacks;
-  const query = `WITH AttackCount AS (
-                  SELECT city, neighborhood, COUNT(*) AS attack_count
+  const query = `WITH LowRiskCities AS (
+                  SELECT city, country, COUNT(tid) AS attack_count
                   FROM terroristattack
-                  GROUP BY city, neighborhood
-              )
-              SELECT city, neighborhood
-              FROM AttackCount
-              WHERE attack_count <= ${max_attacks}`;
+                  WHERE year >= 2004
+                  GROUP BY city, country
+                  HAVING COUNT(tid) < ${max_attacks}
+                ), NeighborhoodStatistics AS (
+                  SELECT a.neighborhood, a.city, a.country,
+                        COUNT(a.aid) AS num_listings,
+                        AVG(CAST(review_scores_rating AS FLOAT)) AS avg_rating,
+                        AVG(price) AS avg_price
+                  FROM airbnb a JOIN LowRiskCities lrc ON a.city=lrc.city AND a.country=lrc.country
+                  GROUP BY a.neighborhood, a.city, a.country
+                )
+                SELECT ns.neighborhood, ns.city, ns.country, ns.num_listings, 
+                      ROUND(ns.avg_rating) AS avg_rating, 
+                      ROUND(ns.avg_price, 2) AS avg_price,
+                      RANK() OVER (PARTITION BY ns.city ORDER BY ns.num_listings DESC, ns.avg_rating DESC) AS neighborhood_rank
+                FROM NeighborhoodStatistics ns
+                ORDER BY neighborhood_rank, ns.city`;
   connection.query(query, (err, data) => {
     if (err) {
       console.log(err);
@@ -187,10 +199,10 @@ const success_rate_and_type = async function(req, res) {
 //Route 8
 const city_reviews = async function(req, res) {
   const city = req.params.city;
-  const query = `SELECT ab.review_score_rating
+  const query = `SELECT ab.aid, ab.city, ab.country, ab.price, ab.guests_included, ab.review_scores_rating
                 FROM Airbnb ab 
-                WHERE ab.city = \'${city}\'
-                ORDER BY review_score_rating DESC`;
+                WHERE LOWER(ab.city) = LOWER(\'${city}\')
+                ORDER BY review_scores_rating DESC`;
   connection.query(query , (err, data) => {
     if (err) {
       console.log(err);
@@ -243,7 +255,7 @@ const highest_success_rate = async function(req, res) {
       res.json(data.rows);
     }
   });
-} 
+}
 
 const all_airbnbs = async function(req, res) {
   const query = `SELECT * FROM airbnb`;
