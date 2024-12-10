@@ -1,8 +1,23 @@
 const express = require('express');
 const cors = require('cors');
+const http  = require('http')
+const Server  = require("socket.io").Server
 const config = require('./config');
 const routes = require('./routes');
 const path = require('path');
+
+const app = express();
+app.use(cors({
+  origin: '*',
+}));
+
+const server  = http.createServer(app)
+const io = new Server(server , {
+    cors:{
+        origin:"*"
+    }
+})
+
 
 const _dirname = path.dirname("")
 const buildPath = path.join(_dirname  , "../client/build");
@@ -36,12 +51,6 @@ io.on("connection" , (socket) => {
     console.log('disconnected')
    })
 })
-
-const app = express();
-app.use(cors({
-  origin: '*',
-}));
-
 
 app.get('/closest_attacks/:id', routes.closest_attacks);
 app.get('/bookmarked_listings/:user_id', routes.bookmarked_listings);
