@@ -2,6 +2,40 @@ const express = require('express');
 const cors = require('cors');
 const config = require('./config');
 const routes = require('./routes');
+const path = require('path');
+
+const _dirname = path.dirname("")
+const buildPath = path.join(_dirname  , "../client/build");
+
+app.use(express.static(buildPath))
+
+app.get("/*", function(req, res){
+
+    res.sendFile(
+        path.join(__dirname, "../client/build/index.html"),
+        function (err) {
+          if (err) {
+            res.status(500).send(err);
+          }
+        }
+      );
+
+})
+
+
+
+
+io.on("connection" , (socket) => {
+   console.log('We are connected')
+
+   socket.on("chat" , chat => {
+      io.emit('chat' , chat)
+   } )
+
+   socket.on('disconnect' , ()=> {
+    console.log('disconnected')
+   })
+})
 
 const app = express();
 app.use(cors({

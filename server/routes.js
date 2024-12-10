@@ -24,7 +24,7 @@ const closest_attacks = async function(req, res) {
                         POWER(A.latitude - T.latitude, 2) + 
                         POWER(A.longitude - T.longitude, 2)
                       ) AS distance
-                    FROM TerroristAttack T
+                    FROM terroristattack T
                     CROSS JOIN airbnb A
                     WHERE A.aid = ${id}
                   )
