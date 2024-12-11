@@ -157,7 +157,7 @@ const affordable_listings = async function(req, res) {
                 SELECT a.*
                 FROM airbnb a JOIN CountryCasualties cc ON a.country=cc.country
                 WHERE price <= ${price} AND cc.avg_casualties <= ${casualties}
-                `;
+                ORDER BY review_scores_rating`;
   connection.query(query , (err, data) => {
     if (err) {
       console.log(err);
@@ -199,7 +199,7 @@ const success_rate_and_type = async function(req, res) {
 //Route 8
 const city_reviews = async function(req, res) {
   const city = req.params.city;
-  const query = `SELECT ab.aid, ab.city, ab.country, ab.price, ab.guests_included, ab.review_scores_rating
+  const query = `SELECT ab.*
                 FROM Airbnb ab 
                 WHERE LOWER(ab.city) = LOWER(\'${city}\')
                 ORDER BY review_scores_rating DESC`;
@@ -244,7 +244,7 @@ const highest_success_rate = async function(req, res) {
                   cws.country,
                   cws.weapon_type,
                   cws.weapon_usage_count,
-                  ROUND(cws.avg_casualties, 2)
+                  ROUND(cws.avg_casualties, 2) AS avg_casualties
               FROM CountryWeaponStats cws
               ORDER BY cws.country, cws.weapon_usage_count DESC, cws.avg_casualties DESC`;
   connection.query(query , (err, data) => {

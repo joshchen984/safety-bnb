@@ -1,72 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Grid, Card, CardContent, Typography, CircularProgress, TextField, Button } from '@mui/material';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination, } from '@mui/material';
+import { TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Paper, Pagination, } from '@mui/material';
+import BookmarkCard from '../components/BookmarkCard';
+import { useCookies } from 'react-cookie';
+import { useNavigate } from 'react-router-dom';
 
-const CountryCard = ({ country, attackCount, successCount, totalCasualties, avgAttackSuccessRate, attackType, weaponType, weaponUsageCount, avgCasualties }) => (
+const CountryCard = ({ country, attackType }) => (
   <Card>
     <CardContent>
       <Typography variant="h6">{country}</Typography>
-      {attackCount && <Typography variant="body2">Attacks: {attackCount}</Typography>}
-      {successCount && <Typography variant="body2">Successful Attacks: {successCount}</Typography>}
-      {totalCasualties && <Typography variant="body2">Casualties: {totalCasualties}</Typography>}
-      {avgAttackSuccessRate && (
-        <Typography variant="body2">Avg Attack Success Rate: {avgAttackSuccessRate}%</Typography>
-      )}
       {attackType && <Typography variant="body2">Attack Type: {attackType}</Typography>}
-      {weaponType && <Typography variant="body2">Weapon Type: {weaponType}</Typography>}
-      {weaponUsageCount && <Typography variant="body2">Weapon Usage Count: {weaponUsageCount}</Typography>}
-      {avgCasualties && <Typography variant="body2">Avg Casualties: {avgCasualties}</Typography>}
-    </CardContent>
-  </Card>
-);
-
-const CityCard = ({ city, attackCount, successCount, totalCasualties }) => (
-  <Card>
-    <CardContent>
-      <Typography variant="h6">{city}</Typography>
-      {attackCount && <Typography variant="body2">Attacks: {attackCount}</Typography>}
-      {successCount && <Typography variant="body2">Successful Attacks: {successCount}</Typography>}
-      {totalCasualties && <Typography variant="body2">Casualties: {totalCasualties}</Typography>}
-    </CardContent>
-  </Card>
-);
-
-const AirbnbCard = ({ aid, city, country, price, rating, guests }) => (
-  <Card>
-    <CardContent>
-      <Typography variant="h6">Airbnb ID: {aid}</Typography>
-      {city && country && (
-        <Typography variant="body2">
-          {city}, {country}
-        </Typography>
-      )}
-      {price && <Typography variant="body2">Price: ${price} / night</Typography>}
-      {rating && <Typography variant="body2">Rating: {rating}</Typography>}
-      {guests && <Typography variant="body2">Guests: {guests}</Typography>}
-    </CardContent>
-  </Card>
-);
-
-const AttackCard = ({ attackType, successRate, count }) => (
-  <Card>
-    <CardContent>
-      <Typography variant="h6">Attack Type: {attackType}</Typography>
-      {successRate && <Typography variant="body2">Avg Success Rate: {successRate} </Typography>}
-      {count && <Typography variant="body2">Attack Count: {count}</Typography>}
-    </CardContent>
-  </Card>
-);
-
-const NeighborhoodCard = ({ neighborhood, city, country, numListings, avgRating, avgPrice, neighborhoodRank }) => (
-  <Card>
-    <CardContent>
-      <Typography variant="h6">Neighborhood: {neighborhood}</Typography>
-      {city && <Typography variant="body2">City: {city} </Typography>}
-      {country && <Typography variant="body2">Country: {country}</Typography>}
-      {numListings && <Typography variant="body2">Number of Listings: {numListings} </Typography>}
-      {avgRating && <Typography variant="body2">Avg Rating: {avgRating}</Typography>}
-      {avgPrice && <Typography variant="body2">Avg Price: {avgPrice}</Typography>}
-      {neighborhoodRank && <Typography variant="body2">Neighborhood Rank: {neighborhoodRank}</Typography>}
     </CardContent>
   </Card>
 );
@@ -80,6 +23,13 @@ const StatisticsPage = () => {
   const [cityReviews, setCityReviews] = useState([]);
   const [highestSuccessRate, setHighestSuccessRate] = useState([]);
 
+  const [currentPageLowRisk, setCurrentPageLowRisk] = useState(1);
+  const [currentPageAffordable, setCurrentPageAffordable] = useState(1);
+  const [currentPageCity, setCurrentPageCity] = useState(1);
+  const [currentPageType, setCurrentPageType] = useState(1);
+  const [cookies, setCookie, removeCookie] = useCookies(['email']);
+  const navigate = useNavigate();
+
   const [loading, setLoading] = useState({
     frequentAttacks: true,
     attackCount: true,
@@ -91,11 +41,11 @@ const StatisticsPage = () => {
   });
 
   const [cityInput, setCityInput] = useState('');
-  const [cityInput2, setCityInput2] = useState('');
-  const [cityInput3, setCityInput3] = useState('');
+  const [cityInput2, setCityInput2] = useState('New York City');
+  const [cityInput3, setCityInput3] = useState('New York City');
   const [yearInput, setYearInput] = useState('');
-  const [maxAttacks, setMaxAttacks] = useState(2);
-  const [price, setPrice] = useState(10);
+  const [maxAttacks, setMaxAttacks] = useState(5);
+  const [price, setPrice] = useState(50);
   const [casualties, setCasualties] = useState(1);
 
   useEffect(() => {
@@ -107,6 +57,21 @@ const StatisticsPage = () => {
     fetchCityReviews();
     fetchHighestSuccessRate();
   }, []);
+
+  const handleAddToBookmarks = async (aid) => {
+    try {
+      const res = await fetch(`http://127.0.0.1:8080/create_bookmark/${cookies.email}/${aid}`, {
+        method: 'GET',
+      });
+      if (!res.ok) {
+        throw new Error('Error adding bookmark');
+      }
+      navigate(`/bookmarks/${cookies.email}`);
+    } catch (error) {
+      console.error('Error adding bookmark:', error);
+      alert('Error adding bookmark');
+    }
+  };
 
   const fetchFrequentAttacks = async () => {
     try {
@@ -195,32 +160,57 @@ const StatisticsPage = () => {
 
   return (
     <div style={{ padding: '20px' }}>
-      <Typography variant="h2" gutterBottom>Location Statistics</Typography>
-
       {/* Low-risk neighborhoods */}
       <section style={{ marginTop: '40px' }}>
-        <Typography variant="h4" gutterBottom>Low-Risk Neighborhoods by Rating & Popularity</Typography>
-        <TextField 
+        <Typography variant="h4" gutterBottom> Low-Risk Neighborhoods by Rating & Popularity </Typography>
+        <TextField
           label="Max Attacks since 2004" 
-          variant="outlined" 
-          value={maxAttacks}
+          variant="outlined" value={maxAttacks} 
           onChange={(e) => setMaxAttacks(e.target.value)} 
-          style={{ marginBottom: '10px' }} 
+          style={{ marginBottom: '10px' }}
         />
-        <Button onClick={fetchLowRiskNeighborhoods} disabled={loading.lowRiskNeighborhoods}>Fetch Listings</Button>
-        
-        {loading.lowRiskNeighborhoods ? <CircularProgress /> : (
-          <Grid container spacing={2}>
-            {lowRiskNeighborhoods.length > 0 ? (
-              lowRiskNeighborhoods.map((listing) => (
-                <Grid item xs={12} sm={6} md={4} key={listing.id}>
-                  <NeighborhoodCard neighborhood={listing.neighborhood} city={listing.city} country={listing.country} numListings={listing.num_listings} avgRating={listing.avg_rating} avgPrice={listing.avg_price} neighborhoodRank={listing.neighborhood_rank} />
-                </Grid>
-              ))
-            ) : (
-              <Typography>No low-risk neighborhoods found.</Typography>
-            )}
-          </Grid>
+        <Button onClick={fetchLowRiskNeighborhoods} disabled={loading.lowRiskNeighborhoods} style={{ marginBottom: '10px' }}>
+          Fetch Listings
+        </Button>
+
+        {loading.lowRiskNeighborhoods ? (<CircularProgress />) : lowRiskNeighborhoods.length > 0 ? (
+          <> <TableContainer component={Paper}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell style={{ fontWeight: 'bold' }}>Neighborhood</TableCell>
+                    <TableCell style={{ fontWeight: 'bold' }}>City</TableCell>
+                    <TableCell style={{ fontWeight: 'bold' }}>Country</TableCell>
+                    <TableCell style={{ fontWeight: 'bold' }}>Number of Listings</TableCell>
+                    <TableCell style={{ fontWeight: 'bold' }}>Average Rating</TableCell>
+                    <TableCell style={{ fontWeight: 'bold' }}>Average Price Per Night</TableCell>
+                    <TableCell style={{ fontWeight: 'bold' }}>Rank</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {lowRiskNeighborhoods.slice((currentPageLowRisk - 1) * 10, currentPageLowRisk * 10).map((listing, index) => (
+                      <TableRow key={index}>
+                        <TableCell>{listing.neighborhood}</TableCell>
+                        <TableCell>{listing.city}</TableCell>
+                        <TableCell>{listing.country}</TableCell>
+                        <TableCell>{listing.num_listings}</TableCell>
+                        <TableCell>{listing.avg_rating}</TableCell>
+                        <TableCell>{listing.avg_price}</TableCell>
+                        <TableCell>{listing.neighborhood_rank}</TableCell>
+                      </TableRow>
+                    ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            <Pagination
+              count={Math.ceil(lowRiskNeighborhoods.length / 10)}
+              page={currentPageLowRisk}
+              onChange={(e, page) => setCurrentPageLowRisk(page)}
+              style={{ marginTop: '10px', display: 'flex', justifyContent: 'center' }}
+            />
+          </>
+        ) : (
+          <Typography>No neighborhoods found.</Typography>
         )}
       </section>
 
@@ -244,17 +234,27 @@ const StatisticsPage = () => {
         <Button onClick={fetchAffordableListings} disabled={loading.affordableListings}>Fetch Listings</Button>
         
         {loading.affordableListings ? <CircularProgress /> : (
-          <Grid container spacing={2}>
-            {affordableListings.length > 0 ? (
-              affordableListings.map((listing) => (
-                <Grid item xs={12} sm={6} md={4} key={listing.id}>
-                  <AirbnbCard aid={listing.aid} city={listing.city} country={listing.country} price={listing.price} rating={listing.review_scores_rating} guest={listing.guests_included} />
+          <> 
+            {affordableListings.length > 0 ? ( 
+            <>
+                <Grid container spacing={2}>
+                  {affordableListings.slice((currentPageAffordable - 1) * 3, currentPageAffordable * 3).map((listing) => (
+                      <Grid item xs={12} sm={6} md={4} key={listing.id}>
+                        <BookmarkCard listing={listing} onAddToBookmarks={handleAddToBookmarks} />
+                      </Grid>
+                  ))}
                 </Grid>
-              ))
+                <Pagination
+                  count={Math.ceil(affordableListings.length / 3)}
+                  page={currentPageAffordable}
+                  onChange={(e, page) => setCurrentPageAffordable(page)}
+                  style={{ marginTop: '10px', display: 'flex', justifyContent: 'center' }}
+                />
+              </>
             ) : (
-              <Typography>No affordable listings found.</Typography>
+              <Typography>No listings found.</Typography>
             )}
-          </Grid>
+          </>
         )}
       </section>
 
@@ -267,25 +267,33 @@ const StatisticsPage = () => {
           value={cityInput3}
           onChange={(e) => setCityInput3(e.target.value)} 
           style={{ marginBottom: '10px' }} 
-      />
+        />
         <Button onClick={fetchCityReviews} disabled={loading.cityReviews}>Fetch listings</Button>
         
         {loading.cityReviews ? <CircularProgress /> : (
-          <Grid container spacing={2}>
+          <>
             {cityReviews.length > 0 ? (
-              cityReviews.map((item) => (
-                <Grid item xs={12} sm={6} md={4} key={item.id}>
-                  <AirbnbCard aid={item.aid} city={item.city} country={item.country} price={item.price} rating={item.review_scores_rating} guests={item.guests_included} />
+              <>
+                <Grid container spacing={2}>
+                  {cityReviews.slice((currentPageCity - 1) * 3, currentPageCity * 3).map((item) => (
+                      <Grid item xs={12} sm={6} md={4} key={item.id}>
+                        <BookmarkCard listing={item} onAddToBookmarks={handleAddToBookmarks} />
+                      </Grid>
+                  ))}
                 </Grid>
-              ))
+                <Pagination
+                  count={Math.ceil(cityReviews.length / 3)} 
+                  page={currentPageCity}
+                  onChange={(e, page) => setCurrentPageCity(page)}
+                  style={{ marginTop: '10px', display: 'flex', justifyContent: 'center' }}
+                />
+              </>
             ) : (
               <Typography>No listings found.</Typography>
             )}
-          </Grid>
+          </>
         )}
       </section>
-
-      <Typography variant="h2" gutterBottom>Attack Statistics</Typography>
 
       {/* Attack Count per City */}
       <section style={{ marginTop: '40px' }}>
@@ -320,58 +328,108 @@ const StatisticsPage = () => {
       )}
       </section>
 
-      {/* Avg success rate by attack type */}
+      {/* Avg Success Rate by Attack Type */}
       <section style={{ marginTop: '40px' }}>
-        <Typography variant="h4" gutterBottom>Avg Success Rate for Attack Type by City </Typography>
+        <Typography variant="h4" gutterBottom>Avg Success Rate for Attack Type by City</Typography>
         <TextField 
           label="City" 
           variant="outlined" 
           value={cityInput2}
           onChange={(e) => setCityInput2(e.target.value)} 
           style={{ marginBottom: '10px' }} 
-      />
-        <Button onClick={fetchSuccessRateAndTypeData} disabled={loading.successRateData}>Fetch data</Button>
+        />
+        <Button onClick={fetchSuccessRateAndTypeData} disabled={loading.successRateData}>Fetch Data</Button>
         
         {loading.successRateData ? <CircularProgress /> : (
-          <Grid container spacing={2}>
+          <>
             {successRateData.length > 0 ? (
-              successRateData.map((item) => (
-                <Grid item xs={12} sm={6} md={4} key={item.id}>
-                  <AttackCard attackType={item.attack_type} successRate={item.success_rate} count={item.attack_count} />
-                </Grid>
-              ))
+              <>
+                <TableContainer component={Paper} style={{ marginTop: '20px' }}>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell style={{ fontWeight: 'bold' }}>Attack Type</TableCell>
+                        <TableCell style={{ fontWeight: 'bold' }}>Success Rate</TableCell>
+                        <TableCell style={{ fontWeight: 'bold' }}>Attack Count</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {successRateData.map((item, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{item.attack_type}</TableCell>
+                          <TableCell>{item.success_rate}</TableCell>
+                          <TableCell>{item.attack_count}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </>
             ) : (
-              <Typography>No success rate data found.</Typography>
+              <Typography>No data available for this city.</Typography>
             )}
-          </Grid>
+          </>
         )}
       </section>
 
       {/* Most Frequent Attack Type for High-Casualty Countries */}
-      <section style={{marginTop: '40px'}}>
-        <Typography variant="h4" gutterBottom>Most Frequent Attack Type for High-Casualty Countries</Typography>
-        {loading.frequentAttacks ? <CircularProgress /> : (
-          <Grid container spacing={2}>
-            {frequentAttacks.map((item, index) => (
-              <Grid item xs={6} sm={4} md={3} key={index}>
-                <CountryCard country={item.country} attackType={item.attack_type} />
-              </Grid>
-            ))}
-          </Grid>
+      <section style={{ marginTop: '40px' }}>
+        <Typography variant="h4" gutterBottom>
+          Most Frequent Attack Type for High-Casualty Countries
+        </Typography>
+
+        {loading.frequentAttacks ? (<CircularProgress />) : frequentAttacks.length > 0 ? (
+          <>
+            <Grid container spacing={2}>
+              {frequentAttacks.slice((currentPageType - 1) * 16, currentPageType * 16).map((item, index) => (
+                  <Grid item xs={6} sm={4} md={3} key={index}>
+                    <CountryCard country={item.country} attackType={item.attack_type} />
+                  </Grid>
+                ))}
+            </Grid>
+            <Pagination
+              count={Math.ceil(frequentAttacks.length / 16)} 
+              page={currentPageType}
+              onChange={(e, page) => setCurrentPageType(page)}
+              style={{ marginTop: '20px', display: 'flex', justifyContent: 'center' }}
+            />
+          </>
+        ) : (
+          <Typography>No data available.</Typography>
         )}
       </section>
 
       {/* Weapon Stats for Countries with Highest Attack Success Rate */}
       <section style={{ marginTop: '40px' }}>
-        <Typography variant="h4" gutterBottom>Weapon Stats for Countries with Highest Attack Success Rate</Typography>
-        {loading.highestSuccessRate ? <CircularProgress /> : (
-          <Grid container spacing={2}>
-            {highestSuccessRate.map((item, index) => (
-              <Grid item xs={6} sm={4} md={3} key={index}>
-                <CountryCard country={item.country} weaponType={item.weapon_type} weaponUsageCount={item.weapon_usage_count} avgCasualties={item.avg_casualties} />
-              </Grid>
-            ))}
-          </Grid>
+        <Typography variant="h4" gutterBottom>
+          Weapon Stats for Countries with Highest Attack Success Rate
+        </Typography>
+
+        {loading.highestSuccessRate ? (<CircularProgress />) : highestSuccessRate.length > 0 ? (
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell style={{ fontWeight: 'bold' }}>Country</TableCell>
+                  <TableCell style={{ fontWeight: 'bold' }}>Weapon Type</TableCell>
+                  <TableCell style={{ fontWeight: 'bold' }}>Weapon Usage Count</TableCell>
+                  <TableCell style={{ fontWeight: 'bold' }}>Avg Casualties</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {highestSuccessRate.map((item, index) => (
+                  <TableRow key={index}>
+                    <TableCell>{item.country}</TableCell>
+                    <TableCell>{item.weapon_type}</TableCell>
+                    <TableCell>{item.weapon_usage_count}</TableCell>
+                    <TableCell>{item.avg_casualties}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        ) : (
+          <Typography>No data available.</Typography>
         )}
       </section>
     </div>
