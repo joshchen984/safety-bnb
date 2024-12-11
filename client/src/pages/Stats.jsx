@@ -3,7 +3,7 @@ import { Grid, Card, CardContent, Typography, CircularProgress, TextField, Butto
 import { TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Paper, Pagination, } from '@mui/material';
 import BookmarkCard from '../components/BookmarkCard';
 import { useCookies } from 'react-cookie';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 
 const CountryCard = ({ country, attackType }) => (
   <Card>
@@ -15,6 +15,9 @@ const CountryCard = ({ country, attackType }) => (
 );
 
 const StatisticsPage = () => {
+  const [cookies] = useCookies(['email']);
+  const navigate = useNavigate();
+
   const [frequentAttacks, setFrequentAttacks] = useState([]);
   const [attackCountData, setAttackCountData] = useState([]);
   const [lowRiskNeighborhoods, setLowRiskNeighborhoods] = useState([]);
@@ -22,13 +25,12 @@ const StatisticsPage = () => {
   const [successRateData, setSuccessRateData] = useState([]);
   const [cityReviews, setCityReviews] = useState([]);
   const [highestSuccessRate, setHighestSuccessRate] = useState([]);
+  const [suggestedVisit, setSuggestedVisit] = useState([]);
 
   const [currentPageLowRisk, setCurrentPageLowRisk] = useState(1);
   const [currentPageAffordable, setCurrentPageAffordable] = useState(1);
   const [currentPageCity, setCurrentPageCity] = useState(1);
   const [currentPageType, setCurrentPageType] = useState(1);
-  const [cookies, setCookie, removeCookie] = useCookies(['email']);
-  const navigate = useNavigate();
 
   const [loading, setLoading] = useState({
     frequentAttacks: true,
@@ -38,6 +40,7 @@ const StatisticsPage = () => {
     successRateData: true,
     cityReviews: true,
     highestSuccessRate: true,
+    suggestedVisit: true
   });
 
   const [cityInput, setCityInput] = useState('');
@@ -56,6 +59,7 @@ const StatisticsPage = () => {
     fetchSuccessRateAndTypeData();
     fetchCityReviews();
     fetchHighestSuccessRate();
+    fetchSuggestedVisit();
   }, []);
 
   const handleAddToBookmarks = async (aid) => {
@@ -158,8 +162,42 @@ const StatisticsPage = () => {
     }
   };
 
+  const fetchSuggestedVisit = async () => {
+    try {
+      const response = await fetch(`http://127.0.0.1:8080/suggested_visit/${cookies.email}`);
+      const data = await response.json();
+      setSuggestedVisit(data);
+    } catch (error) {
+      console.error("Error fetching weapon stats:", error);
+    } finally {
+      setLoading((prev) => ({ ...prev, suggestedVisit: false }));
+    }
+  };
+
   return (
     <div style={{ padding: '20px' }}>
+      {/* Suggested Visit Based on Bookmarks */}
+      <section style={{ marginTop: '40px' }}>
+      <Typography variant="h4" gutterBottom>Suggested Visit</Typography>
+      {loading.suggestedVisit ? <CircularProgress /> : (
+        <Grid container spacing={2}>
+          {suggestedVisit.length > 0 ? (
+            <Grid item xs={12}>
+              <Typography variant="h7">
+                {`${suggestedVisit[0].city} (${suggestedVisit[0].country})`}
+              </Typography>
+            </Grid>
+          ) : (
+            cookies.email ? (
+              <p>No low-risk suggestions. Try bookmarking more listings.</p>
+            ) : (
+              <p><Link to="/login">Log In</Link> or <Link to="/signup">Sign Up</Link> to view.</p>
+            )
+          )}
+        </Grid>
+      )}
+      </section>
+      
       {/* Low-risk neighborhoods */}
       <section style={{ marginTop: '40px' }}>
         <Typography variant="h4" gutterBottom> Low-Risk Neighborhoods by Rating & Popularity </Typography>

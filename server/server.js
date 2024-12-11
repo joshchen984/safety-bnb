@@ -46,6 +46,7 @@ app.get('/affordable_listings/:price/:casualties', routes.affordable_listings);
 app.get('/success_rate_and_type/:city', routes.success_rate_and_type);
 app.get('/city_reviews/:city', routes.city_reviews);
 app.get('/highest_success_rate', routes.highest_success_rate);
+app.get('/suggested_visit/:uid', routes.suggested_visit);
 app.get('/airbnbs', routes.all_airbnbs);
 app.get('/airbnb/:id', routes.airbnb);
 app.get('/search', routes.search);
