@@ -21,11 +21,11 @@ const closest_attacks = async function(req, res) {
   const query = `WITH t_distance AS (
                   SELECT T.tid, T.*,
                       SQRT(
-                        POWER(A.latitude - T.latitude, 2) + 
-                        POWER(A.longitude - T.longitude, 2)
+                        POWER(AL.latitude - T.latitude, 2) + 
+                        POWER(AL.longitude - T.longitude, 2)
                       ) AS distance
                     FROM terroristattack T
-                    CROSS JOIN airbnb A
+                    CROSS JOIN airbnb A JOIN airbnb_location AL ON A.aid = AL.aid
                     WHERE A.aid = ${id}
                   )
                   SELECT *
@@ -262,9 +262,10 @@ const suggested_visit = async function(req, res) {
   const uid = req.params.uid;
   const query = `SELECT t.city, t.country
                   FROM bookmark b JOIN airbnb a ON b.aid = a.aid 
+                                  JOIN airbnb_location al ON a.aid = al.aid
                                   JOIN terroristattack t ON a.city = t.city AND a.country = t.country
                   WHERE b.user_email = \'${uid}'\
-                    AND SQRT(POWER(a.latitude - t.latitude, 2) + POWER(a.longitude - t.longitude, 2)) < 2
+                    AND SQRT(POWER(al.latitude - t.latitude, 2) + POWER(al.longitude - t.longitude, 2)) < 2
                   GROUP BY t.city, t.country
                   ORDER BY COUNT(t.tid)
                   LIMIT 1`;

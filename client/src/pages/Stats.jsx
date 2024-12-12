@@ -26,6 +26,7 @@ const StatisticsPage = () => {
   const [cityReviews, setCityReviews] = useState([]);
   const [highestSuccessRate, setHighestSuccessRate] = useState([]);
   const [suggestedVisit, setSuggestedVisit] = useState([]);
+  const [closestAttacks, setClosestAttacks] = useState([]);
 
   const [currentPageLowRisk, setCurrentPageLowRisk] = useState(1);
   const [currentPageAffordable, setCurrentPageAffordable] = useState(1);
@@ -33,23 +34,25 @@ const StatisticsPage = () => {
   const [currentPageType, setCurrentPageType] = useState(1);
 
   const [loading, setLoading] = useState({
-    frequentAttacks: true,
-    attackCount: true,
-    lowRiskNeighborhoods: true,
-    affordableListings: true,
-    successRateData: true,
-    cityReviews: true,
-    highestSuccessRate: true,
-    suggestedVisit: true
+    frequentAttacks: false,
+    attackCount: false,
+    lowRiskNeighborhoods: false,
+    affordableListings: false,
+    successRateData: false,
+    cityReviews: false,
+    highestSuccessRate: false,
+    suggestedVisit: false,
+    closestAttacks: false
   });
 
   const [cityInput, setCityInput] = useState('');
-  const [cityInput2, setCityInput2] = useState('New York City');
-  const [cityInput3, setCityInput3] = useState('New York City');
+  const [cityInput2, setCityInput2] = useState('');
+  const [cityInput3, setCityInput3] = useState('');
   const [yearInput, setYearInput] = useState('');
   const [maxAttacks, setMaxAttacks] = useState(5);
-  const [price, setPrice] = useState(50);
+  const [price, setPrice] = useState(10);
   const [casualties, setCasualties] = useState(1);
+  const [aid, setAid] = useState();
 
   useEffect(() => {
     fetchFrequentAttacks();
@@ -78,6 +81,7 @@ const StatisticsPage = () => {
   };
 
   const fetchFrequentAttacks = async () => {
+    setLoading((prev) => ({ ...prev, frequentAttacks: true }));
     try {
       const response = await fetch('http://127.0.0.1:8080/frequent_attacks');
       const data = await response.json();
@@ -90,6 +94,7 @@ const StatisticsPage = () => {
   };
 
   const fetchAttackCount = async () => {
+    setLoading((prev) => ({ ...prev, attackCount: true }));
     try {
       const url = `http://127.0.0.1:8080/attack_count/${cityInput}?year=${yearInput}`;
       const response = await fetch(url);
@@ -103,6 +108,7 @@ const StatisticsPage = () => {
   };
 
   const fetchLowRiskNeighborhoods = async () => {
+    setLoading((prev) => ({ ...prev, lowRiskNeighborhoods: true }));
     try {
       const response = await fetch(`http://127.0.0.1:8080/low_risk_neighborhoods/${maxAttacks}`);
       const data = await response.json();
@@ -115,6 +121,7 @@ const StatisticsPage = () => {
   };
 
   const fetchAffordableListings = async () => {
+    setLoading((prev) => ({ ...prev, affordableListings: true }));
     try {
       const response = await fetch(`http://127.0.0.1:8080/affordable_listings/${price}/${casualties}`);
       const data = await response.json();
@@ -127,6 +134,7 @@ const StatisticsPage = () => {
   };
 
   const fetchSuccessRateAndTypeData = async () => {
+    setLoading((prev) => ({ ...prev, successRateData: true }));
     try {
       const response = await fetch(`http://127.0.0.1:8080/success_rate_and_type/${cityInput2}`);
       const data = await response.json();
@@ -139,6 +147,7 @@ const StatisticsPage = () => {
   };
 
   const fetchCityReviews = async () => {
+    setLoading((prev) => ({ ...prev, cityReviews: true }));
     try {
       const response = await fetch(`http://127.0.0.1:8080/city_reviews/${cityInput3}`);
       const data = await response.json();
@@ -151,26 +160,41 @@ const StatisticsPage = () => {
   };
 
   const fetchHighestSuccessRate = async () => {
+    setLoading((prev) => ({ ...prev, highestSuccessRate: true }));
     try {
       const response = await fetch(`http://127.0.0.1:8080/highest_success_rate`);
       const data = await response.json();
       setHighestSuccessRate(data);
     } catch (error) {
-      console.error("Error fetching weapon stats:", error);
+      console.error("Error fetching success rate data:", error);
     } finally {
       setLoading((prev) => ({ ...prev, highestSuccessRate: false }));
     }
   };
 
   const fetchSuggestedVisit = async () => {
+    setLoading((prev) => ({ ...prev, suggestedVisit: true }));
     try {
       const response = await fetch(`http://127.0.0.1:8080/suggested_visit/${cookies.email}`);
       const data = await response.json();
       setSuggestedVisit(data);
     } catch (error) {
-      console.error("Error fetching weapon stats:", error);
+      console.error("Error fetching suggested visit:", error);
     } finally {
       setLoading((prev) => ({ ...prev, suggestedVisit: false }));
+    }
+  };
+
+  const fetchClosestAttacks = async () => {
+    setLoading((prev) => ({ ...prev, closestAttacks: true }));
+    try {
+      const response = await fetch(`http://127.0.0.1:8080/closest_attacks/${aid}`);
+      const data = await response.json();
+      setClosestAttacks(data);
+    } catch (error) {
+      console.error("Error fetching closest attacks:", error);
+    } finally {
+      setLoading((prev) => ({ ...prev, closestAttacks: false }));
     }
   };
 
@@ -333,6 +357,60 @@ const StatisticsPage = () => {
         )}
       </section>
 
+      {/* closest attacks */}
+      <section style={{ marginTop: '40px' }}>
+        <Typography variant="h4" gutterBottom>Closest Attacks</Typography>
+        <TextField 
+          label="Airbnb ID" 
+          variant="outlined" 
+          value={aid}
+          onChange={(e) => setAid(e.target.value)} 
+          style={{ marginBottom: '10px' }} 
+        />
+        <Button onClick={fetchClosestAttacks} disabled={loading.closestAttacks}>Fetch data</Button>
+
+        {loading.closestAttacks ? <CircularProgress /> : (
+          <>
+            {closestAttacks.length > 0 ? (
+              <>
+                <TableContainer component={Paper} style={{ marginTop: '20px' }}>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell style={{ fontWeight: 'bold' }}>City</TableCell>
+                        <TableCell style={{ fontWeight: 'bold' }}>Country</TableCell>
+                        <TableCell style={{ fontWeight: 'bold' }}>Year</TableCell>
+                        <TableCell style={{ fontWeight: 'bold' }}>Success</TableCell>
+                        <TableCell style={{ fontWeight: 'bold' }}>Attack Type</TableCell>
+                        <TableCell style={{ fontWeight: 'bold' }}>Weapon Type</TableCell>
+                        <TableCell style={{ fontWeight: 'bold' }}>Num Wounded</TableCell>
+                        <TableCell style={{ fontWeight: 'bold' }}>Num Killed</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {closestAttacks.map((item, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{item.city}</TableCell>
+                          <TableCell>{item.country}</TableCell>
+                          <TableCell>{item.year}</TableCell>
+                          <TableCell>{item.success}</TableCell>
+                          <TableCell>{item.attack_type}</TableCell>
+                          <TableCell>{item.weapon_type}</TableCell>
+                          <TableCell>{item.nwound}</TableCell>
+                          <TableCell>{item.nkill}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </>
+            ) : (
+              <Typography>No listings found.</Typography>
+            )}
+          </>
+        )}
+      </section>
+
       {/* Attack Count per City */}
       <section style={{ marginTop: '40px' }}>
       <Typography variant="h4" gutterBottom>Attack Count by City</Typography>
@@ -350,7 +428,7 @@ const StatisticsPage = () => {
         onChange={(e) => setYearInput(e.target.value)} 
         style={{ marginBottom: '10px' }} 
       />
-      <Button onClick={fetchAttackCount} disabled={loading.attackCount}>Fetch Attack Count</Button>
+      <Button onClick={fetchAttackCount} disabled={loading.attackCount}>Fetch Data</Button>
       {loading.attackCount ? <CircularProgress /> : (
         <Grid container spacing={2}>
           {attackCountData.length > 0 ? (
@@ -412,21 +490,19 @@ const StatisticsPage = () => {
 
       {/* Most Frequent Attack Type for High-Casualty Countries */}
       <section style={{ marginTop: '40px' }}>
-        <Typography variant="h4" gutterBottom>
-          Most Frequent Attack Type for High-Casualty Countries
-        </Typography>
+        <Typography variant="h4" gutterBottom>Most Frequent Attack Type for High-Casualty Countries</Typography>
 
         {loading.frequentAttacks ? (<CircularProgress />) : frequentAttacks.length > 0 ? (
           <>
             <Grid container spacing={2}>
-              {frequentAttacks.slice((currentPageType - 1) * 16, currentPageType * 16).map((item, index) => (
+              {frequentAttacks.slice((currentPageType - 1) * 20, currentPageType * 20).map((item, index) => (
                   <Grid item xs={6} sm={4} md={3} key={index}>
                     <CountryCard country={item.country} attackType={item.attack_type} />
                   </Grid>
                 ))}
             </Grid>
             <Pagination
-              count={Math.ceil(frequentAttacks.length / 16)} 
+              count={Math.ceil(frequentAttacks.length / 20)} 
               page={currentPageType}
               onChange={(e, page) => setCurrentPageType(page)}
               style={{ marginTop: '20px', display: 'flex', justifyContent: 'center' }}
