@@ -405,7 +405,7 @@ const StatisticsPage = () => {
                 </TableContainer>
               </>
             ) : (
-              <Typography>No listings found.</Typography>
+              <Typography>No data found.</Typography>
             )}
           </>
         )}

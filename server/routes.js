@@ -200,7 +200,7 @@ const success_rate_and_type = async function(req, res) {
 const city_reviews = async function(req, res) {
   const city = req.params.city;
   const query = `SELECT ab.*
-                FROM Airbnb ab 
+                FROM airbnb ab 
                 WHERE LOWER(ab.city) = LOWER(\'${city}\')
                 ORDER BY review_scores_rating DESC`;
   connection.query(query , (err, data) => {
@@ -316,7 +316,8 @@ const search = async function(req, res) {
   const min_attacks_same_country = req.query.min_attacks_same_country ?? -1;
 
   let query = `
-    SELECT * FROM airbnb
+    SELECT a.*, al.latitude, al.longitude
+    FROM airbnb a JOIN airbnb_location al ON a.aid = al.aid
     WHERE price <= ${max_price} 
     AND accommodates >= ${guests} 
     AND bedrooms >= ${bedrooms}
