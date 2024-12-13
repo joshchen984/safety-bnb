@@ -17,7 +17,7 @@ const GoogleButton = (props) => {
         setCookie("email", user.email);
 
         // Call create_user route
-        fetch(`http://127.0.0.1:8080/create_user/${user.email}/${user.displayName.split(' ')[0]}/${user.displayName.split(' ')[1]}`, {
+        fetch(`${process.env.REACT_APP_SERVER_URL}/create_user/${user.email}/${user.displayName.split(' ')[0]}/${user.displayName.split(' ')[1]}`, {
           method: 'GET',
         })
         .then(response => {

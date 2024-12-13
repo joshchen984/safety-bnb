@@ -28,7 +28,7 @@ const Bookmarks = () => {
 
     const fetchBookmarks = async () => {
       try {
-        const response = await fetch(`http://127.0.0.1:8080/bookmarked_listings/${userId}`);
+        const response = await fetch(`${process.env.REACT_APP_SERVER_URL}/bookmarked_listings/${userId}`);
         if (!response.ok) {
           throw new Error(`Error fetching bookmarks for user ${userId}`);
         }
@@ -45,9 +45,7 @@ const Bookmarks = () => {
 
   const handleDeleteFromBookmarks = async (aid) => {
     try {
-      const res = await fetch(`http://127.0.0.1:8080/delete_bookmark/${cookies.email}/${aid}`, {
-        method: 'DELETE',
-      });
+      const res = await fetch(`${process.env.REACT_APP_SERVER_URL}/delete_bookmark/${cookies.email}/${aid}`);
       if (!res.ok) {
         throw new Error('Error deleting bookmark');
       }

@@ -67,7 +67,7 @@ const StatisticsPage = () => {
 
   const handleAddToBookmarks = async (aid) => {
     try {
-      const res = await fetch(`http://127.0.0.1:8080/create_bookmark/${cookies.email}/${aid}`, {
+      const res = await fetch(`${process.env.REACT_APP_SERVER_URL}/create_bookmark/${cookies.email}/${aid}`, {
         method: 'GET',
       });
       if (!res.ok) {
@@ -83,7 +83,7 @@ const StatisticsPage = () => {
   const fetchFrequentAttacks = async () => {
     setLoading((prev) => ({ ...prev, frequentAttacks: true }));
     try {
-      const response = await fetch('http://127.0.0.1:8080/frequent_attacks');
+      const response = await fetch(`${process.env.REACT_APP_SERVER_URL}/frequent_attacks`);
       const data = await response.json();
       setFrequentAttacks(data);
     } catch (error) {
@@ -96,7 +96,7 @@ const StatisticsPage = () => {
   const fetchAttackCount = async () => {
     setLoading((prev) => ({ ...prev, attackCount: true }));
     try {
-      const url = `http://127.0.0.1:8080/attack_count/${cityInput}?year=${yearInput}`;
+      const url = `${process.env.REACT_APP_SERVER_URL}/attack_count/${cityInput}?year=${yearInput}`;
       const response = await fetch(url);
       const data = await response.json();
       setAttackCountData(data);
@@ -110,7 +110,7 @@ const StatisticsPage = () => {
   const fetchLowRiskNeighborhoods = async () => {
     setLoading((prev) => ({ ...prev, lowRiskNeighborhoods: true }));
     try {
-      const response = await fetch(`http://127.0.0.1:8080/low_risk_neighborhoods/${maxAttacks}`);
+      const response = await fetch(`${process.env.REACT_APP_SERVER_URL}/low_risk_neighborhoods/${maxAttacks}`);
       const data = await response.json();
       setLowRiskNeighborhoods(data);
     } catch (error) {
@@ -123,7 +123,7 @@ const StatisticsPage = () => {
   const fetchAffordableListings = async () => {
     setLoading((prev) => ({ ...prev, affordableListings: true }));
     try {
-      const response = await fetch(`http://127.0.0.1:8080/affordable_listings/${price}/${casualties}`);
+      const response = await fetch(`${process.env.REACT_APP_SERVER_URL}/affordable_listings/${price}/${casualties}`);
       const data = await response.json();
       setAffordableListings(data);
     } catch (error) {
@@ -136,7 +136,7 @@ const StatisticsPage = () => {
   const fetchSuccessRateAndTypeData = async () => {
     setLoading((prev) => ({ ...prev, successRateData: true }));
     try {
-      const response = await fetch(`http://127.0.0.1:8080/success_rate_and_type/${cityInput2}`);
+      const response = await fetch(`${process.env.REACT_APP_SERVER_URL}/success_rate_and_type/${cityInput2}`);
       const data = await response.json();
       setSuccessRateData(data);
     } catch (error) {
@@ -149,7 +149,7 @@ const StatisticsPage = () => {
   const fetchCityReviews = async () => {
     setLoading((prev) => ({ ...prev, cityReviews: true }));
     try {
-      const response = await fetch(`http://127.0.0.1:8080/city_reviews/${cityInput3}`);
+      const response = await fetch(`${process.env.REACT_APP_SERVER_URL}/city_reviews/${cityInput3}`);
       const data = await response.json();
       setCityReviews(data);
     } catch (error) {
@@ -162,7 +162,7 @@ const StatisticsPage = () => {
   const fetchHighestSuccessRate = async () => {
     setLoading((prev) => ({ ...prev, highestSuccessRate: true }));
     try {
-      const response = await fetch(`http://127.0.0.1:8080/highest_success_rate`);
+      const response = await fetch(`${process.env.REACT_APP_SERVER_URL}/highest_success_rate`);
       const data = await response.json();
       setHighestSuccessRate(data);
     } catch (error) {
@@ -175,7 +175,7 @@ const StatisticsPage = () => {
   const fetchSuggestedVisit = async () => {
     setLoading((prev) => ({ ...prev, suggestedVisit: true }));
     try {
-      const response = await fetch(`http://127.0.0.1:8080/suggested_visit/${cookies.email}`);
+      const response = await fetch(`${process.env.REACT_APP_SERVER_URL}/suggested_visit/${cookies.email}`);
       const data = await response.json();
       setSuggestedVisit(data);
     } catch (error) {
@@ -188,7 +188,7 @@ const StatisticsPage = () => {
   const fetchClosestAttacks = async () => {
     setLoading((prev) => ({ ...prev, closestAttacks: true }));
     try {
-      const response = await fetch(`http://127.0.0.1:8080/closest_attacks/${aid}`);
+      const response = await fetch(`${process.env.REACT_APP_SERVER_URL}/closest_attacks/${aid}`);
       const data = await response.json();
       setClosestAttacks(data);
     } catch (error) {

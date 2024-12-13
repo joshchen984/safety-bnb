@@ -15,7 +15,7 @@ const Home = () => {
   useEffect(() => {
     const fetchListings = async () => {
       try {
-        const res = await fetch('http://127.0.0.1:8080/search');
+        const res = await fetch(`${process.env.REACT_APP_SERVER_URL}/search`);
         const resJson = await res.json();
         setListings(resJson);
       } catch (error) {
@@ -29,7 +29,7 @@ const Home = () => {
 
   const handleAddToBookmarks = async (aid) => {
     try {
-      const res = await fetch(`http://127.0.0.1:8080/create_bookmark/${cookies.email}/${aid}`, {
+      const res = await fetch(`${process.env.REACT_APP_SERVER_URL}/create_bookmark/${cookies.email}/${aid}`, {
         method: 'GET',
       });
       if (!res.ok) {

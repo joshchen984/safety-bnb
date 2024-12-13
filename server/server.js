@@ -1,41 +1,12 @@
 const express = require('express');
 const cors = require('cors');
-const http  = require('http')
-const Server  = require("socket.io").Server
 const config = require('./config');
 const routes = require('./routes');
-const path = require('path');
 
 const app = express();
 app.use(cors({
   origin: '*',
 }));
-
-const server  = http.createServer(app)
-const io = new Server(server , {
-    cors:{
-        origin:"*"
-    }
-})
-
-
-const _dirname = path.dirname("")
-const buildPath = path.join(_dirname  , "../client/build");
-
-app.use(express.static(buildPath))
-
-
-io.on("connection" , (socket) => {
-   console.log('We are connected')
-
-   socket.on("chat" , chat => {
-      io.emit('chat' , chat)
-   } )
-
-   socket.on('disconnect' , ()=> {
-    console.log('disconnected')
-   })
-})
 
 app.get('/closest_attacks/:id', routes.closest_attacks);
 app.get('/bookmarked_listings/:user_id', routes.bookmarked_listings);
@@ -54,18 +25,6 @@ app.get('/create_bookmark/:uid/:aid', routes.create_bookmark);
 app.get('/delete_bookmark/:uid/:aid', routes.delete_bookmark);
 app.get('/create_user/:email/:firstname/:lastname', routes.create_user);
 
-app.get("/*", function(req, res){
-
-  res.sendFile(
-      path.join(__dirname, "../client/build/index.html"),
-      function (err) {
-        if (err) {
-          res.status(500).send(err);
-        }
-      }
-    );
-
-})
 
 app.listen(config.server_port, () => {
   console.log(`Server running at http://${config.server_host}:${config.server_port}/`)

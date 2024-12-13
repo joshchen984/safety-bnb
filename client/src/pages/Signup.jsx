@@ -23,7 +23,7 @@ const Signup = () => {
         setCookie("email", user.email);
 
         // Call create_user route
-        fetch(`http://127.0.0.1:8080/create_user/${email}/${firstname}/${lastname}`, {
+        fetch(`${process.env.REACT_APP_SERVER_URL}/create_user/${email}/${firstname}/${lastname}`, {
           method: 'GET',
         })
         .then(response => {
