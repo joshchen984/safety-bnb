@@ -52,6 +52,7 @@ const Bookmarks = () => {
       setBookmarks(bookmarks.filter(bookmark => bookmark.aid !== aid));
     } catch (error) {
       console.error('Error deleting bookmark:', error);
+      alert(`Error deleting bookmark: ${error}`);
     }
   };
 

@@ -38,7 +38,7 @@ const Home = () => {
       navigate(`/bookmarks/${cookies.email}`);
     } catch (error) {
       console.error('Error adding bookmark:', error);
-      alert('Error adding bookmark');
+      alert(`Error adding bookmark: ${error}`);
     }
   };
 
@@ -49,7 +49,7 @@ const Home = () => {
         <p>Welcome, {cookies.email}</p>
       ) : (
         <p>
-          Welcome, please <Link to="/login">Log In</Link>
+          Welcome, Please <Link to="/login">Log In</Link>
         </p>
       )}
       {loading ? (
