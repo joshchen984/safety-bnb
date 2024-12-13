@@ -21,11 +21,11 @@ const closest_attacks = async function(req, res) {
   const query = `WITH t_distance AS (
                   SELECT T.tid, T.*,
                       SQRT(
-                        POWER(A.latitude - T.latitude, 2) + 
-                        POWER(A.longitude - T.longitude, 2)
+                        POWER(AL.latitude - T.latitude, 2) + 
+                        POWER(AL.longitude - T.longitude, 2)
                       ) AS distance
                     FROM terroristattack T
-                    CROSS JOIN airbnb A
+                    CROSS JOIN airbnb A JOIN airbnb_location AL ON A.aid = AL.aid
                     WHERE A.aid = ${id}
                   )
                   SELECT *
@@ -157,7 +157,7 @@ const affordable_listings = async function(req, res) {
                 SELECT a.*
                 FROM airbnb a JOIN CountryCasualties cc ON a.country=cc.country
                 WHERE price <= ${price} AND cc.avg_casualties <= ${casualties}
-                `;
+                ORDER BY review_scores_rating`;
   connection.query(query , (err, data) => {
     if (err) {
       console.log(err);
@@ -199,8 +199,8 @@ const success_rate_and_type = async function(req, res) {
 //Route 8
 const city_reviews = async function(req, res) {
   const city = req.params.city;
-  const query = `SELECT ab.aid, ab.city, ab.country, ab.price, ab.guests_included, ab.review_scores_rating
-                FROM Airbnb ab 
+  const query = `SELECT ab.*
+                FROM airbnb ab 
                 WHERE LOWER(ab.city) = LOWER(\'${city}\')
                 ORDER BY review_scores_rating DESC`;
   connection.query(query , (err, data) => {
@@ -244,9 +244,31 @@ const highest_success_rate = async function(req, res) {
                   cws.country,
                   cws.weapon_type,
                   cws.weapon_usage_count,
-                  ROUND(cws.avg_casualties, 2)
+                  ROUND(cws.avg_casualties, 2) AS avg_casualties
               FROM CountryWeaponStats cws
               ORDER BY cws.country, cws.weapon_usage_count DESC, cws.avg_casualties DESC`;
+  connection.query(query , (err, data) => {
+    if (err) {
+      console.log(err);
+      res.json({});
+    } else {
+      res.json(data.rows);
+    }
+  });
+}
+
+// Route 10
+const suggested_visit = async function(req, res) {
+  const uid = req.params.uid;
+  const query = `SELECT t.city, t.country
+                  FROM bookmark b JOIN airbnb a ON b.aid = a.aid 
+                                  JOIN airbnb_location al ON a.aid = al.aid
+                                  JOIN terroristattack t ON a.city = t.city AND a.country = t.country
+                  WHERE b.user_email = \'${uid}'\
+                    AND SQRT(POWER(al.latitude - t.latitude, 2) + POWER(al.longitude - t.longitude, 2)) < 2
+                  GROUP BY t.city, t.country
+                  ORDER BY COUNT(t.tid)
+                  LIMIT 1`;
   connection.query(query , (err, data) => {
     if (err) {
       console.log(err);
@@ -294,7 +316,8 @@ const search = async function(req, res) {
   const min_attacks_same_country = req.query.min_attacks_same_country ?? -1;
 
   let query = `
-    SELECT * FROM airbnb
+    SELECT a.*, al.latitude, al.longitude
+    FROM airbnb a JOIN airbnb_location al ON a.aid = al.aid
     WHERE price <= ${max_price} 
     AND accommodates >= ${guests} 
     AND bedrooms >= ${bedrooms}
@@ -412,6 +435,7 @@ module.exports = {
   success_rate_and_type,
   city_reviews,
   highest_success_rate,
+  suggested_visit,
   affordable_listings,
   all_airbnbs,
   airbnb,
